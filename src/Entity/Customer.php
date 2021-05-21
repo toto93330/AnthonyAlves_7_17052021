@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 
 /**
- * @ORM\Entity(repositoryClass=CustomerRepository::class)
+ * @ORM\Entity(repositoryClass="App\Repository\CustomerRepository")
  */
 class Customer
 {
@@ -20,28 +20,10 @@ class Customer
      */
     private $id;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="customers")
      */
     private $user;
-
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(?User $user): self
-    {
-        $this->user = $user;
-
-        return $this;
-    }
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -91,6 +73,23 @@ class Customer
      * @Assert\NotBlank(message="ERROR 400 : This value is null, please enter an country (for more info use doc)")
      */
     private $country;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
 
     public function getEmail(): ?string
     {
