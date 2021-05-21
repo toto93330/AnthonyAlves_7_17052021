@@ -477,6 +477,13 @@ iframe {
   transition: opacity 0.4s;
 }
 
+.alert {
+  margin-left: 18px;
+  bottom: 65px;
+  position: fixed;
+  z-index: 9999;
+}
+
 .alert-validate::after {
   content: "\f12a";
   font-family: FontAwesome;

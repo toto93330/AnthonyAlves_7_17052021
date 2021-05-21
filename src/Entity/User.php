@@ -2,10 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\UserRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
@@ -35,11 +35,6 @@ class User implements UserInterface
      * @ORM\Column(type="string")
      */
     private $password;
-
-    /**
-     * @ORM\OneToOne(targetEntity=ApiKey::class, mappedBy="user", cascade={"persist", "remove"})
-     */
-    private $apiKey;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -135,28 +130,6 @@ class User implements UserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
-    }
-
-    public function getApiKey(): ?ApiKey
-    {
-        return $this->apiKey;
-    }
-
-    public function setApiKey(?ApiKey $apiKey): self
-    {
-        // unset the owning side of the relation if necessary
-        if ($apiKey === null && $this->apiKey !== null) {
-            $this->apiKey->setUser(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($apiKey !== null && $apiKey->getUser() !== $this) {
-            $apiKey->setUser($this);
-        }
-
-        $this->apiKey = $apiKey;
-
-        return $this;
     }
 
     public function getName(): ?string

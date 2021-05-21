@@ -13,6 +13,11 @@ class HomeController extends AbstractController
      */
     public function index(): Response
     {
+
+        if ($this->getUser()) {
+            return $this->redirectToRoute('dashboard');
+        }
+
         return $this->render('home/index.html.twig', [
             'controller_name' => 'HomeController',
         ]);
