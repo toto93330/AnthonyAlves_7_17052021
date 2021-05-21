@@ -19,6 +19,28 @@ class CustomerRepository extends ServiceEntityRepository
         parent::__construct($registry, Customer::class);
     }
 
+
+    public function findAllByUser($user)
+    {
+        $qb = $this
+            ->createQueryBuilder('u')
+            ->andWhere('u.user = :val')
+            ->setParameter('val', $user)
+            ->select('u');
+        return $qb->getQuery()->getArrayResult();
+    }
+
+    public function findOneByUser($user, $useruniqueid)
+    {
+        $qb = $this
+            ->createQueryBuilder('u')
+            ->andWhere('u.user = :val', 'u.id = :userid')
+            ->setParameter('val', $user)
+            ->setParameter('userid', $useruniqueid)
+            ->select('u');
+        return $qb->getQuery()->getArrayResult();
+    }
+
     // /**
     //  * @return Customer[] Returns an array of Customer objects
     //  */

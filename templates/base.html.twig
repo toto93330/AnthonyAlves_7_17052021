@@ -20,6 +20,21 @@
         {# BODY #}
         {% block body %}{% endblock %}
        
+
+           <!--START FLASH INFO -->
+   {% for message in app.flashes('notify') %}
+		<div class="alert alert-primary" role="alert">
+			{{ message }}
+		</div>
+	{% endfor %}
+
+	{% for message in app.flashes('notify_error') %}
+		<div class="alert alert-danger" role="alert">
+			{{ message }}
+		</div>
+	{% endfor %}
+   <!--END FLASH INFO -->
+
         {# JAVASCRIPT #}
         <script src="{{ asset('assets/vendor/jquery/jquery-3.2.1.min.js') }}"></script>
         <script src="{{ asset('assets/vendor/animsition/js/animsition.min.js') }}"></script>

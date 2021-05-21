@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Repository\ApiKeyRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -18,30 +17,19 @@ class ApiKey
     private $id;
 
     /**
-     * @ORM\OneToOne(targetEntity=user::class, inversedBy="apiKey", cascade={"persist", "remove"})
-     */
-    private $user;
-
-    /**
      * @ORM\Column(type="string", length=255)
      */
     private $api_key;
 
+    /**
+     * @ORM\OneToOne(targetEntity=User::class, cascade={"persist", "remove"})
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $User;
+
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getUser(): ?user
-    {
-        return $this->user;
-    }
-
-    public function setUser(?user $user): self
-    {
-        $this->user = $user;
-
-        return $this;
     }
 
     public function getApiKey(): ?string
@@ -52,6 +40,18 @@ class ApiKey
     public function setApiKey(string $api_key): self
     {
         $this->api_key = $api_key;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->User;
+    }
+
+    public function setUser(User $User): self
+    {
+        $this->User = $User;
 
         return $this;
     }
