@@ -35,11 +35,17 @@ class AppFixtures extends Fixture
 
         $user = [
             1 => [
-                'email' => 'contact@bilmo.com',
+                'email' => 'test@test.com',
                 'role' => 'ROLE_USER',
                 'password' => '$argon2id$v=19$m=65536,t=4,p=1$MXl4dVhUbDZwck5LTTg4aQ$vLCd1a/SFOe8ZSHU6yY8LhlVJ94TCvzGN7QiT+8YDsw',
                 'name' => 'John',
-            ]
+            ],
+            2 => [
+                'email' => 'admin@bilmo.com',
+                'role' => 'ROLE_ADMIN',
+                'password' => '$argon2id$v=19$m=65536,t=4,p=1$MXl4dVhUbDZwck5LTTg4aQ$vLCd1a/SFOe8ZSHU6yY8LhlVJ94TCvzGN7QiT+8YDsw',
+                'name' => 'Willis',
+            ],
         ];
 
         foreach ($user as $value) {
@@ -146,35 +152,35 @@ class AppFixtures extends Fixture
         $product = [
             1 => [
                 'name' => 'Galaxy S13',
-                'price' => 900,
+                'price' => 90000,
                 'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce volutpat mauris est, ac pulvinar ante faucibus sed.',
                 'brand' => 'Samsung',
                 'quantity' => '22',
             ],
             2 => [
                 'name' => 'Iphone 13',
-                'price' => 1200,
+                'price' => 120000,
                 'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce volutpat mauris est, ac pulvinar ante faucibus sed.',
                 'brand' => 'Apple',
                 'quantity' => '15',
             ],
             3 => [
                 'name' => 'Black shark 4',
-                'price' => 300,
+                'price' => 30000,
                 'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce volutpat mauris est, ac pulvinar ante faucibus sed.',
                 'brand' => 'Xiaomi',
                 'quantity' => '32',
             ],
             4 => [
                 'name' => '3310',
-                'price' => 30,
+                'price' => 3000,
                 'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce volutpat mauris est, ac pulvinar ante faucibus sed.',
                 'brand' => 'Nokia',
                 'quantity' => '12',
             ],
             5 => [
                 'name' => 'Galaxy zoom',
-                'price' => 100,
+                'price' => 10000,
                 'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce volutpat mauris est, ac pulvinar ante faucibus sed.',
                 'brand' => 'Samsung',
                 'quantity' => '54',
