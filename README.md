@@ -67,4 +67,4 @@ contact@bilmo.com
 root
 ```
 
-Félications le projet est installé correctement, vous pouvez désormais commencer à l'utiliser à votre guise !
+Félitations le projet est installé correctement, vous pouvez désormais commencer à l'utiliser à votre guise !
