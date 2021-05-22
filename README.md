@@ -1,4 +1,4 @@
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/5dad21e71c4c49ee9a6a4637133f7e0d)](https://www.codacy.com/gh/toto93330/AnthonyAlves_6_24042021/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=toto93330/AnthonyAlves_6_24042021&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2a878f8af53a4ae6aad47051316980a1)](https://www.codacy.com/gh/toto93330/AnthonyAlves_7_17052021/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=toto93330/AnthonyAlves_7_17052021&amp;utm_campaign=Badge_Grade)
 
 ## CONTEXT : 
 
@@ -62,6 +62,14 @@ php bin/console doctrine:fixtures:load
 
 ```sh
 contact@bilmo.com
+```
+```sh
+root
+```
+(Optionnel) Si vous utilisez les fixtures voici l'identifiant Utilisateur :
+
+```sh
+test@test.com
 ```
 ```sh
 root

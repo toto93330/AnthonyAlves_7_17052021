@@ -35,12 +35,6 @@ class AppFixtures extends Fixture
 
         $user = [
             1 => [
-                'email' => 'test@test.com',
-                'role' => 'ROLE_USER',
-                'password' => '$argon2id$v=19$m=65536,t=4,p=1$MXl4dVhUbDZwck5LTTg4aQ$vLCd1a/SFOe8ZSHU6yY8LhlVJ94TCvzGN7QiT+8YDsw',
-                'name' => 'John',
-            ],
-            2 => [
                 'email' => 'admin@bilmo.com',
                 'role' => 'ROLE_ADMIN',
                 'password' => '$argon2id$v=19$m=65536,t=4,p=1$MXl4dVhUbDZwck5LTTg4aQ$vLCd1a/SFOe8ZSHU6yY8LhlVJ94TCvzGN7QiT+8YDsw',
