@@ -66,13 +66,5 @@ contact@bilmo.com
 ```sh
 root
 ```
-(Optionnel) Si vous utilisez les fixtures voici l'identifiant Utilisateur :
-
-```sh
-test@test.com
-```
-```sh
-root
-```
 
 Félications le projet est installé correctement, vous pouvez désormais commencer à l'utiliser à votre guise !
