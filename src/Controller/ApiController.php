@@ -165,14 +165,14 @@ class ApiController extends AbstractController
      * @OA\Response( response=404, description="User dont exist or your are not allowed for take information !")
      * @OA\Response( response=401, description="Expired JWT Token")
      */
-    public function getDatailCustomer(CustomerRepository $customer, $useruniqueid, Request $request): Response
+    public function getDetailCustomer(CustomerRepository $customerRepository, Customer $customer, Request $request): Response
     {
 
-        $customer = $customer->findOneByUser($this->user[0], $useruniqueid);
+        //$customer = $customer->findOneByUser($this->user[0], $useruniqueid);
 
-        if (count($customer) === 0) {
-            return new JsonResponse('User dont exist or your are not allowed for take information !', 200, ['Content-Type' => 'application/json']);
-        }
+        // if (count($customer) === 0) {
+        //     return new JsonResponse('User dont exist or your are not allowed for take information !', 200, ['Content-Type' => 'application/json']);
+        // }
 
         return $this->json($customer, 200, [], ['groups' => 'customer:read']);
     }

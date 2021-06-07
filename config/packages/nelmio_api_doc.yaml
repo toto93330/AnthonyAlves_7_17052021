@@ -1,7 +1,7 @@
 nelmio_api_doc:
     documentation:
         info:
-            title: Bilmo api
+            title: Bilmo API Doc
             description: This is an awesome app!
             version: 1.0.0
         components:
