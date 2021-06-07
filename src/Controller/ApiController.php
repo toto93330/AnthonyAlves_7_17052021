@@ -2,33 +2,41 @@
 
 namespace App\Controller;
 
-use App\Entity\ApiKey;
-use App\Entity\Product;
+
+use App\Entity\User;
 use App\Entity\Customer;
 use OpenApi\Annotations as OA;
-use App\Repository\ApiKeyRepository;
+use App\Repository\UserRepository;
 use App\Repository\ProductRepository;
 use App\Repository\CustomerRepository;
-use OpenApi\Annotations\SecurityScheme;
 use Doctrine\ORM\EntityManagerInterface;
-use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 class ApiController extends AbstractController
 {
     private $entityManager;
+    private $user;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, RequestStack $requestStack, UserRepository $users)
     {
         $this->entityManager = $entityManager;
+
+        $request = $requestStack->getCurrentRequest();
+        $headers = $request->headers->all();
+        if (isset($headers['authorization']['0'])) {
+            $token = explode(" ", $headers['authorization']['0']);
+            $token = explode(".", $token[1]);
+            $user = json_decode(base64_decode($token[1]));
+            $this->user = $users->findBy(['email' => $user->username]);
+        }
     }
 
     /**
@@ -47,7 +55,7 @@ class ApiController extends AbstractController
      *
      * @OA\RequestBody(
      *    required=true,
-     *    description="Generate JWT token",
+     *    description="Generate JWT Bearer Token with your user login informations",
      *    @OA\JsonContent(
      *       required={"username","password"},
      *       @OA\Property(property="username", type="string", format="email", example="test@bilmo.com"),
@@ -55,9 +63,10 @@ class ApiController extends AbstractController
      *    ),
      * ),
      */
-    public function JWTGenToken(Request $request)
+    public function JWTGenToken()
     {
     }
+
     /**
      * Consult all bilmo product
      * @Route("/api/auth/get/all/products", name="get-all-products", methods={"GET"})
@@ -70,21 +79,10 @@ class ApiController extends AbstractController
      *
      * @OA\Response( response=200, description="Return all product")
      * @OA\Response( response=204, description="No products for moments !")
-     * @OA\Response( response=401, description="Expired JWT Token or bilmo api key is not valid")
+     * @OA\Response( response=401, description="Expired JWT Token")
      */
-    public function getAllProducts(ApiKeyRepository $verifapikey, ProductRepository $product, Request $request)
+    public function getAllProducts(ProductRepository $product, Request $request)
     {
-
-        //1. Verif api key exist 
-        $apikey = $request->headers->get("user-api-key");
-        $verifapikey = $verifapikey->findOneBy(array('api_key' => $apikey));
-
-        if (!$verifapikey) {
-            return new JsonResponse('Your bilmo api key is not valid or is not declared !', 400, ['Content-Type' => 'application/json']);
-        }
-
-
-        //2. Get all product
         $products = $product->findAll();
 
         if (count($products) === 0) {
@@ -108,19 +106,12 @@ class ApiController extends AbstractController
      * 
      * @OA\Response( response=200, description="Return defined product by id")
      * @OA\Response( response=404, description="Product dont exist !")
-     * @OA\Response( response=401, description="Expired JWT Token or bilmo api key is not valid")
+     * @OA\Response( response=401, description="Expired JWT Token")
      * 
      */
-    public function getDetailProduct($productid, ApiKeyRepository $verifapikey, ProductRepository $product, Request $request): Response
+    public function getDetailProduct($productid, ProductRepository $product, Request $request): Response
     {
-        //1. Verif api key exist 
-        $apikey = $request->headers->get("user-api-key");
-        $verifapikey = $verifapikey->findOneBy(array('api_key' => $apikey));
 
-        if (!$verifapikey) {
-            return new JsonResponse('Your bilmo api key is not valid or is not declared !', 400, ['Content-Type' => 'application/json']);
-        }
-        //2. Get detailed product
         $product = $product->findBy(array('id' => $productid));
 
         if (!$product) {
@@ -144,22 +135,12 @@ class ApiController extends AbstractController
      * 
      * @OA\Response( response=200, description="Return all custom defined by user")
      * @OA\Response( response=404, description="No customers for moments in your account !")
-     * @OA\Response( response=401, description="Expired JWT Token or bilmo api key is not valid")
+     * @OA\Response( response=401, description="Expired JWT Token")
      */
-    public function getAllCustomers(ApiKeyRepository $verifapikey, CustomerRepository $customer, Request $request): Response
+    public function getAllCustomers(CustomerRepository $customer, Request $request): Response
     {
 
-        //1. Verif api key exist 
-        $apikey = $request->headers->get("user-api-key");
-        $verifapikey = $verifapikey->findOneBy(array('api_key' => $apikey));
-
-        if (!$verifapikey) {
-            return new JsonResponse('Your bilmo api key is not valid or is not declared !', 401, ['Content-Type' => 'application/json']);
-        }
-
-        //2. Get all customers
-        $user = $verifapikey->getUser();
-        $customer = $customer->findAllByUser($user);
+        $customer = $customer->findAllByUser($this->user[0]);
 
         if (count($customer) === 0) {
             return new JsonResponse('No customers for moments in your account !', 200, ['Content-Type' => 'application/json']);
@@ -182,26 +163,12 @@ class ApiController extends AbstractController
      * 
      * @OA\Response( response=200, description="Return defined customer defined by id")
      * @OA\Response( response=404, description="User dont exist or your are not allowed for take information !")
-     * @OA\Response( response=401, description="Expired JWT Token or bilmo api key is not valid")
+     * @OA\Response( response=401, description="Expired JWT Token")
      */
-    public function getDatailCustomer(ApiKeyRepository $verifapikey, CustomerRepository $customer, $useruniqueid, Request $request): Response
+    public function getDatailCustomer(CustomerRepository $customer, $useruniqueid, Request $request): Response
     {
 
-        //1. Verif api key exist 
-        $apikey = $request->headers->get("user-api-key");
-        $verifapikey = $verifapikey->findOneBy(array('api_key' => $apikey));
-
-        if (!$verifapikey) {
-            return new JsonResponse('Your bilmo api key is not valid or is not declared !', 401, ['Content-Type' => 'application/json']);
-        }
-
-
-        //2. Get customer details
-        $user = $verifapikey->getUser();
-
-
-
-        $customer = $customer->findOneByUser($user, $useruniqueid);
+        $customer = $customer->findOneByUser($this->user[0], $useruniqueid);
 
         if (count($customer) === 0) {
             return new JsonResponse('User dont exist or your are not allowed for take information !', 200, ['Content-Type' => 'application/json']);
@@ -222,7 +189,7 @@ class ApiController extends AbstractController
      * 
      * @OA\Response( response=200, description="Customer is created !")
      * @OA\Response( response=400, description="Bad request !")
-     * @OA\Response( response=401, description="Expired JWT Token or bilmo api key is not valid")
+     * @OA\Response( response=401, description="Expired JWT Token")
      * 
      * @OA\RequestBody(
      *    required=true,
@@ -239,23 +206,14 @@ class ApiController extends AbstractController
      *    ),
      * ),
      */
-    public function postNewCustomer(Request $request, ApiKeyRepository $verifapikey, SerializerInterface $serializer, ValidatorInterface $validator): Response
+    public function postNewCustomer(Request $request, SerializerInterface $serializer, ValidatorInterface $validator): Response
     {
-        //1. Verif api key exist 
-        $apikey = $request->headers->get("user-api-key");
-        $verifapikey = $verifapikey->findOneBy(array('api_key' => $apikey));
-
-        if (!$verifapikey) {
-            return new JsonResponse('Your bilmo api key is not valid or is not declared !', 400, ['Content-Type' => 'application/json']);
-        }
 
         try {
-            //2. Add New customer
-            $user = $verifapikey->getUser();
             $data = $request->getContent();
 
             $newcustomer = $serializer->deserialize($data, Customer::class, 'json');
-            $newcustomer->setUser($user);
+            $newcustomer->setUser($this->user[0]);
 
             $error = $validator->validate($newcustomer);
 
@@ -284,23 +242,12 @@ class ApiController extends AbstractController
      * 
      * @OA\Response( response=200, description="Customer is removed !!")
      * @OA\Response( response=418, description="You dont allowed for remove this customer !!")
-     * @OA\Response( response=401, description="Expired JWT Token or bilmo api key is not valid")
+     * @OA\Response( response=401, description="Expired JWT Token")
      *
      */
-    public function deleteCustomer($apikey, $useruniqueid, ApiKeyRepository $verifapikey, CustomerRepository $customer, Request $request): Response
+    public function deleteCustomer($useruniqueid, CustomerRepository $customer): Response
     {
-        //1. Verif api key exist 
-        $apikey = $request->headers->get("user-api-key");
-        $verifapikey = $verifapikey->findOneBy(array('api_key' => $apikey));
-
-        if (!$verifapikey) {
-            return new JsonResponse('Your bilmo api key is not valid or is not declared !', 400, ['Content-Type' => 'application/json']);
-        }
-
-        //Delect user
-        $user = $verifapikey->getUser();
-
-        $customer = $customer->findOneByUser($user, $useruniqueid);
+        $customer = $customer->findOneByUser($this->user[0], $useruniqueid);
 
         if ($customer) {
             $this->entityManager->remove($customer);

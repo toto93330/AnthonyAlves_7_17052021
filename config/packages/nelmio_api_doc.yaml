@@ -11,10 +11,10 @@ nelmio_api_doc:
                     scheme: bearer
                     name: Bearer
                     bearerFormat: JWT
-                api_key:
-                    type: apiKey
-                    name: user-api-key
-                    in: header
+                # api_key:
+                #     type: apiKey
+                #     name: user-api-key
+                #     in: header
         security:
             - Bearer: []
             - api_key: []

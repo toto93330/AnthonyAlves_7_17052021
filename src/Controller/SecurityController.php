@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use Exception;
 use App\Entity\User;
-use App\Entity\ApiKey;
 use Doctrine\ORM\EntityManagerInterface;
 use League\OAuth2\Client\Provider\Google;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -123,11 +122,6 @@ class SecurityController extends AbstractController
                 $user->setPassword($this->encoder->encodePassword($user, $password));
                 $user->setName($ownerDetails->getFirstName());
                 $this->entityManager->persist($user);
-                // CREATE API KEY
-                $apikey = new ApiKey();
-                $apikey->setUser($user);
-                $apikey->setApiKey(generateRandomString() . generateRandomString());
-                $this->entityManager->persist($apikey);
 
                 $email = (new TemplatedEmail())
                     ->from('bilmo666666@gmail.com')
@@ -142,7 +136,6 @@ class SecurityController extends AbstractController
                         'name' => $ownerDetails->getFirstName(),
                         'password' => $password,
                         'useremail' => $ownerDetails->getEmail(),
-                        'apikey' => $apikey->getApiKey(),
                     ]);
 
 
