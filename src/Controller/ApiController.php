@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 class ApiController extends AbstractController
@@ -30,7 +31,33 @@ class ApiController extends AbstractController
         $this->entityManager = $entityManager;
     }
 
-
+    /**
+     * Generate JWT Bearer Token  *IMPORTANT*
+     * @Route("/api/login_check", name="jwt-token", methods={"POST"})
+     * 
+     *      * API DOC *
+     *  
+     * Generate JWT Bearer Token
+     *
+     * @OA\Tag(name="Jwt Token")
+     * 
+     * @OA\Response( response=200, description="Return JWT token")
+     * @OA\Response( response=400, description="Bad request.")
+     * @OA\Response( response=401, description="Invalid credentials.")
+     *
+     * @OA\RequestBody(
+     *    required=true,
+     *    description="Generate JWT token",
+     *    @OA\JsonContent(
+     *       required={"username","password"},
+     *       @OA\Property(property="username", type="string", format="email", example="test@bilmo.com"),
+     *       @OA\Property(property="password", type="string", example="test"),
+     *    ),
+     * ),
+     */
+    public function JWTGenToken(Request $request)
+    {
+    }
     /**
      * Consult all bilmo product
      * @Route("/api/auth/get/all/products", name="get-all-products", methods={"GET"})
