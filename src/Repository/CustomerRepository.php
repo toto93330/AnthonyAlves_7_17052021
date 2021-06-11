@@ -41,6 +41,17 @@ class CustomerRepository extends ServiceEntityRepository
         return $qb->getQuery()->getArrayResult();
     }
 
+    public function findForRemoveByUser($user, $useruniqueid)
+    {
+        $qb = $this
+            ->createQueryBuilder('u')
+            ->andWhere('u.user = :val', 'u.id = :userid')
+            ->setParameter('val', $user)
+            ->setParameter('userid', $useruniqueid)
+            ->select('u');
+        return $qb->getQuery()->getResult();
+    }
+
     // /**
     //  * @return Customer[] Returns an array of Customer objects
     //  */
