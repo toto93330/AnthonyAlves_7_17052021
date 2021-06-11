@@ -41,7 +41,14 @@ security:
                     - lexik_jwt_authentication.jwt_token_authenticator
         delete:
             pattern:   ^/api/auth/delete/
-            methods: [GET]
+            methods: [DELETE]
+            stateless: true
+            guard:
+                authenticators:
+                    - lexik_jwt_authentication.jwt_token_authenticator
+        patch:
+            pattern:   ^/api/auth/patch/
+            methods: [PATCH]
             stateless: true
             guard:
                 authenticators:

@@ -165,14 +165,14 @@ class ApiController extends AbstractController
      * @OA\Response( response=404, description="User dont exist or your are not allowed for take information !")
      * @OA\Response( response=401, description="Expired JWT Token")
      */
-    public function getDetailCustomer(CustomerRepository $customerRepository, Customer $customer, Request $request): Response
+    public function getDetailCustomer($useruniqueid, CustomerRepository $customerRepository, Request $request): Response
     {
 
-        //$customer = $customer->findOneByUser($this->user[0], $useruniqueid);
+        $customer = $customerRepository->findOneByUser($this->user[0], $useruniqueid);
 
-        // if (count($customer) === 0) {
-        //     return new JsonResponse('User dont exist or your are not allowed for take information !', 200, ['Content-Type' => 'application/json']);
-        // }
+        if (count($customer) === 0) {
+            return new JsonResponse('User dont exist or your are not allowed for take information !', 200, ['Content-Type' => 'application/json']);
+        }
 
         return $this->json($customer, 200, [], ['groups' => 'customer:read']);
     }
@@ -202,6 +202,7 @@ class ApiController extends AbstractController
      *       @OA\Property(property="phone", type="string", example="+33675901691"),
      *       @OA\Property(property="adress", type="string", example="8, sentier de la carriere"),
      *       @OA\Property(property="city", type="string", example="neuilly sur marne"),
+     *       @OA\Property(property="zipcode", type="integer", example=93330),
      *       @OA\Property(property="country", type="string", example="France"),
      *    ),
      * ),
@@ -245,9 +246,9 @@ class ApiController extends AbstractController
      * @OA\Response( response=401, description="Expired JWT Token")
      *
      */
-    public function deleteCustomer($useruniqueid, CustomerRepository $customer): Response
+    public function deleteCustomer($useruniqueid, CustomerRepository $customerRepository): Response
     {
-        $customer = $customer->findOneByUser($this->user[0], $useruniqueid);
+        $customer = $this->entityManager->getRepository(Customer::class)->findOneBy(["user" => $this->user[0], "id" => $useruniqueid]);
 
         if ($customer) {
             $this->entityManager->remove($customer);
@@ -256,5 +257,65 @@ class ApiController extends AbstractController
         }
 
         return new JsonResponse('You dont allowed for remove this customer !', 418, ['Content-Type' => 'application/json']);
+    }
+
+
+
+    /**
+     * Modifier customer
+     * @Route("/api/auth/patch/{useruniqueid}/customer", name="update-customer", methods={"PATCH"})
+     * 
+     *      * API DOC *
+     *
+     * Update bilmo customer by id for defined user.
+     * 
+     * @OA\Tag(name="Customers")
+     * 
+     * @OA\Response( response=200, description="Customer is updated !!")
+     * @OA\Response( response=304, description="You dont allowed for update this customer !!")
+     * @OA\Response( response=401, description="Expired JWT Token")
+     * 
+     * @OA\RequestBody(
+     *    required=true,
+     *    description="modifier customer on your account",
+     *    @OA\JsonContent(
+     *       required={"email","firstname","lastname","phone","adress","zip_code","city","country"},
+     *       @OA\Property(property="email", type="string", format="email", example="contact@bilmo.com"),
+     *       @OA\Property(property="firstname", type="string", example="John"),
+     *       @OA\Property(property="lastname", type="string", example="Doe"),
+     *       @OA\Property(property="phone", type="string", example="+33675901691"),
+     *       @OA\Property(property="adress", type="string", example="8, sentier de la carriere"),
+     *       @OA\Property(property="city", type="string", example="neuilly sur marne"),
+     *       @OA\Property(property="zipcode", type="integer", example=93330),
+     *       @OA\Property(property="country", type="string", example="France"),
+     *    ),
+     * ),
+     *
+     */
+    public function updateCustomer($useruniqueid, CustomerRepository $customer, Request $request, SerializerInterface $serializer): Response
+    {
+        $customer = $customer->findOneBy(["user" => $this->user[0], "id" => $useruniqueid]);
+
+
+        if ($customer) {
+
+            $data = json_decode($request->getContent());
+
+            $customer->setEmail($data->email);
+            $customer->setFirstname($data->firstname);
+            $customer->setLastname($data->lastname);
+            $customer->setPhone($data->phone);
+            $customer->setAdress($data->adress);
+            $customer->setCity($data->city);
+            $customer->setZipCode($data->zipcode);
+            $customer->setCountry($data->country);
+
+            $this->entityManager->persist($customer);
+            $this->entityManager->flush();
+
+            return new JsonResponse('Customer ' . $useruniqueid . ' is updated !', 200, ['Content-Type' => 'application/json']);
+        }
+
+        return new JsonResponse('You dont allowed for update this customer !', 304, ['Content-Type' => 'application/json']);
     }
 }
