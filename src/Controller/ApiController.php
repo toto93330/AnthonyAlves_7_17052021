@@ -279,7 +279,7 @@ class ApiController extends AbstractController
      * @OA\Tag(name="Customers")
      * 
      * @OA\Response( response=200, description="Customer is updated !!")
-     * @OA\Response( response=304, description="You dont allowed for update this customer !!")
+     * @OA\Response( response=418, description="You dont allowed for update this customer !!")
      * @OA\Response( response=401, description="Expired JWT Token")
      * 
      * @OA\RequestBody(
@@ -301,10 +301,19 @@ class ApiController extends AbstractController
      */
     public function updateCustomer($useruniqueid, CustomerRepository $customer, Request $request, SerializerInterface $serializer): Response
     {
+
+
         $customer = $customer->findOneBy(["user" => $this->user[0], "id" => $useruniqueid]);
 
 
-        if ($customer) {
+
+        // IF CUSTOMER DONT EXIST OR USER USER NOT ALLOWED FOR UPDATE CUSTOMER
+        if (empty($customer)) {
+            return new JsonResponse(['status' => 418, 'message' => 'You dont allowed for update this customer !'], 418, ['Content-Type' => 'application/json']);
+        }
+
+        // IF ITS OK
+        if (!empty($customer)) {
 
             $data = json_decode($request->getContent());
 
@@ -322,7 +331,5 @@ class ApiController extends AbstractController
 
             return new JsonResponse(['status' => 200, 'message' => 'Customer ' . $useruniqueid . ' is updated !'], 200, ['Content-Type' => 'application/json']);
         }
-
-        return new JsonResponse(['status' => 304, 'message' => 'You dont allowed for update this customer !'], 304, ['Content-Type' => 'application/json']);
     }
 }
