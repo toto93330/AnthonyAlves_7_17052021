@@ -2,7 +2,6 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\ApiKey;
 use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\User;
@@ -49,23 +48,6 @@ class AppFixtures extends Fixture
             $user->setPassword($value['password']);
             $user->setName($value['name']);
             $manager->persist($user);
-        }
-
-        $manager->flush();
-
-        // API KEY
-
-        $apykey = [
-            1 => [
-                'api_key' => 'gCNsDqidW3LfZbHg1WCu',
-            ]
-        ];
-
-        foreach ($apykey as $value) {
-            $apykey = new ApiKey();
-            $apykey->setUser($user);
-            $apykey->setApiKey($value['api_key']);
-            $manager->persist($apykey);
         }
 
         $manager->flush();

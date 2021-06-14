@@ -86,7 +86,7 @@ class ApiController extends AbstractController
         $products = $product->findAll();
 
         if (count($products) === 0) {
-            return new JsonResponse('No products for moments !', 204, ['Content-Type' => 'application/json']);
+            return new JsonResponse(['status' => 204, 'message' => 'No products for moments !'], 204, ['Content-Type' => 'application/json']);
         }
 
 
@@ -115,7 +115,7 @@ class ApiController extends AbstractController
         $product = $product->findBy(array('id' => $productid));
 
         if (!$product) {
-            return new JsonResponse('Product dont exist !', 404, ['Content-Type' => 'application/json']);
+            return new JsonResponse(['status' => 404, 'message' => 'Product dont exist !'], 404, ['Content-Type' => 'application/json']);
         }
 
 
@@ -134,7 +134,7 @@ class ApiController extends AbstractController
      * @OA\Tag(name="Customers")
      * 
      * @OA\Response( response=200, description="Return all custom defined by user")
-     * @OA\Response( response=404, description="No customers for moments in your account !")
+     * @OA\Response( response=204, description="No customers for moments in your account !")
      * @OA\Response( response=401, description="Expired JWT Token")
      */
     public function getAllCustomers(CustomerRepository $customer, Request $request): Response
@@ -143,7 +143,7 @@ class ApiController extends AbstractController
         $customer = $customer->findAllByUser($this->user[0]);
 
         if (count($customer) === 0) {
-            return new JsonResponse('No customers for moments in your account !', 200, ['Content-Type' => 'application/json']);
+            return new JsonResponse(['status' => 204, 'message' => 'No customers for moments in your account !'], 204, ['Content-Type' => 'application/json']);
         }
 
         // For instance, return a Response with encoded Json
@@ -171,7 +171,7 @@ class ApiController extends AbstractController
         $customer = $customerRepository->findOneByUser($this->user[0], $useruniqueid);
 
         if (count($customer) === 0) {
-            return new JsonResponse('User dont exist or your are not allowed for take information !', 200, ['Content-Type' => 'application/json']);
+            return new JsonResponse(['status' => 401, 'message' => 'User dont exist or your are not allowed for take information !'], 200, ['Content-Type' => 'application/json']);
         }
 
         return $this->json($customer, 200, [], ['groups' => 'customer:read']);
@@ -213,19 +213,26 @@ class ApiController extends AbstractController
         try {
             $data = $request->getContent();
 
+            // INSTENTIATE CUSTOMER OBJET AND VERIF ERROR
             $newcustomer = $serializer->deserialize($data, Customer::class, 'json');
             $newcustomer->setUser($this->user[0]);
-
             $error = $validator->validate($newcustomer);
-
             if (count($error) > 0) {
                 return $this->json($error, 400, ['Content-Type' => 'application/json']);
             }
 
+            // IF CUSTOMER IS ALLREADY REGISTERED
+            $customer = json_decode($data);
+            $customerexist = $this->entityManager->getRepository(Customer::class)->findBy(["email" => $customer->email, "user" => $this->user[0]]);;
+            if (!empty($customerexist)) {
+                return new JsonResponse(['status' => 401, 'message' => 'This customer is allready registered !'], 401, ['Content-Type' => 'application/json']);
+            }
+
+            // IF ALL INFORMATION IS OK PERSIST CUSTOMER
             $this->entityManager->persist($newcustomer);
             $this->entityManager->flush();
 
-            return new JsonResponse('Customer is created !', 201, ['Content-Type' => 'application/json']);
+            return new JsonResponse(['status' => 201, 'message' => 'Customer is created !'], 201, ['Content-Type' => 'application/json']);
         } catch (NotEncodableValueException $e) {
             return new JsonResponse(['status' => 400, 'message' => $e->getMessage()], 400);
         }
@@ -253,10 +260,10 @@ class ApiController extends AbstractController
         if ($customer) {
             $this->entityManager->remove($customer);
             $this->entityManager->flush();
-            return new JsonResponse('Customer ' . $useruniqueid . ' is removed !', 200, ['Content-Type' => 'application/json']);
+            return new JsonResponse(['status' => 200, 'message' => 'Customer ' . $useruniqueid . ' is removed !'], 200, ['Content-Type' => 'application/json']);
         }
 
-        return new JsonResponse('You dont allowed for remove this customer !', 418, ['Content-Type' => 'application/json']);
+        return new JsonResponse(['status' => 418, 'message' => 'You dont allowed for remove this customer !'], 418, ['Content-Type' => 'application/json']);
     }
 
 
@@ -313,9 +320,9 @@ class ApiController extends AbstractController
             $this->entityManager->persist($customer);
             $this->entityManager->flush();
 
-            return new JsonResponse('Customer ' . $useruniqueid . ' is updated !', 200, ['Content-Type' => 'application/json']);
+            return new JsonResponse(['status' => 200, 'message' => 'Customer ' . $useruniqueid . ' is updated !'], 200, ['Content-Type' => 'application/json']);
         }
 
-        return new JsonResponse('You dont allowed for update this customer !', 304, ['Content-Type' => 'application/json']);
+        return new JsonResponse(['status' => 304, 'message' => 'You dont allowed for update this customer !'], 304, ['Content-Type' => 'application/json']);
     }
 }
