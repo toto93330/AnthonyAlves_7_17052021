@@ -103,7 +103,7 @@ class SecurityController extends AbstractController
             }
             //echo $ownerDetails->getEmail();
 
-            $emailexist = $this->entityManager->getRepository(User::class)->findAll(array(1, 'email' => $ownerDetails->getEmail()));
+            $emailexist = $this->entityManager->getRepository(User::class)->findBy(["email" => $ownerDetails->toArray()['email']]);
 
             if (!$emailexist) {
                 // if email dont existe on database create user and send email whith password
@@ -112,7 +112,6 @@ class SecurityController extends AbstractController
                 {
                     return substr(str_shuffle(str_repeat($x = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', ceil($length / strlen($x)))), 1, $length);
                 }
-
 
                 // CREATE USER
                 $password = generateRandomString();
@@ -137,7 +136,6 @@ class SecurityController extends AbstractController
                         'password' => $password,
                         'useremail' => $ownerDetails->getEmail(),
                     ]);
-
 
                 // actually executes the queries (i.e. the INSERT query)
                 $this->entityManager->flush();
