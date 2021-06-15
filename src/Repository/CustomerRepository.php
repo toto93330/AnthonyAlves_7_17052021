@@ -52,6 +52,18 @@ class CustomerRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    public function findByMaxResult($user, $maxresult)
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.user = :val')
+            ->setParameter('val', $user)
+            ->orderBy('p.id', 'ASC')
+            ->setMaxResults(10)
+            ->setFirstResult($maxresult)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     // /**
     //  * @return Customer[] Returns an array of Customer objects
     //  */

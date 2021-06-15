@@ -19,22 +19,20 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
+
     // /**
-    //  * @return Product[] Returns an array of Product objects
+    //  * @return product Returns an array of Comment objects with max
     //  */
-    /*
-    public function findByExampleField($value)
+    public function findByMaxResult($maxresult)
     {
         return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
             ->orderBy('p.id', 'ASC')
             ->setMaxResults(10)
+            ->setFirstResult($maxresult)
             ->getQuery()
-            ->getResult()
-        ;
+            ->getResult();
     }
-    */
+
 
     /*
     public function findOneBySomeField($value): ?Product
