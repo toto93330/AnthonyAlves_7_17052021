@@ -9,13 +9,14 @@ use OpenApi\Annotations as OA;
 use App\Repository\UserRepository;
 use App\Repository\ProductRepository;
 use App\Repository\CustomerRepository;
+use JMS\Serializer\SerializerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -24,10 +25,13 @@ class ApiController extends AbstractController
 {
     private $entityManager;
     private $user;
+    private $serializer;
 
-    public function __construct(EntityManagerInterface $entityManager, RequestStack $requestStack, UserRepository $users)
+    public function __construct(EntityManagerInterface $entityManager, RequestStack $requestStack, UserRepository $users, SerializerInterface $serializer)
     {
         $this->entityManager = $entityManager;
+
+        $this->serializer = $serializer;
 
         $request = $requestStack->getCurrentRequest();
         $headers = $request->headers->all();
@@ -41,7 +45,7 @@ class ApiController extends AbstractController
 
     /**
      * Generate JWT Bearer Token  *IMPORTANT*
-     * @Route("/api/login_check", name="jwt-token", methods={"POST"})
+     * @Route("/api/v1/login_check", name="jwt-token", methods={"POST"})
      * 
      *      * API DOC *
      *  
@@ -69,7 +73,7 @@ class ApiController extends AbstractController
 
     /**
      * Consult all bilmo product
-     * @Route("/api/auth/get/all/products", name="get-all-products", methods={"GET"})
+     * @Route("/api/v1/products/{pages}", name="get-all-products", methods={"GET"})
      * 
      *      * API DOC *
      *
@@ -81,22 +85,33 @@ class ApiController extends AbstractController
      * @OA\Response( response=204, description="No products for moments !")
      * @OA\Response( response=401, description="Expired JWT Token")
      */
-    public function getAllProducts(ProductRepository $product, Request $request)
+    public function getAllProducts($pages, ProductRepository $product, Request $request)
     {
-        $products = $product->findAll();
+        // TAKE PRODUCT WITH PAGINATION
+        $products = $product->findByMaxResult($pages);
 
+        // OUT OF RANGE
         if (count($products) === 0) {
-            return new JsonResponse(['status' => 204, 'message' => 'No products for moments !'], 204, ['Content-Type' => 'application/json']);
+            return new JsonResponse(['status' => 204, 'message' => 'No more products for moments !'], 204, ['Content-Type' => 'application/json']);
+        }
+
+        $products = $this->serializer->toArray($products);
+
+        // API auto discoverable
+        $json = [];
+
+        foreach ($products as $key => $value) {
+            $json +=  [$key => ['@uri' => '/api/v1/products/' . $products[$key]['id'], '@method' => '[GET]', '@content' => $value]];
         }
 
 
         // For instance, return a Response with encoded Json
-        return $this->json($products, 200, [], []);
+        return $this->json($json, 200, [], []);
     }
 
     /**
      * Consult detail bilmo product
-     * @Route("/api/auth/get/detail/{productid}/product", name="get-product-detail", methods={"GET"})
+     * @Route("/api/v1/product/{productid}", name="get-product-detail", methods={"GET"})
      * 
      *      * API DOC *
      *
@@ -118,14 +133,13 @@ class ApiController extends AbstractController
             return new JsonResponse(['status' => 404, 'message' => 'Product dont exist !'], 404, ['Content-Type' => 'application/json']);
         }
 
-
         // For instance, return a Response with encoded Json
         return $this->json($product, 200, [], []);
     }
 
     /**
      * Consult all customer by user
-     * @Route("/api/auth/get/all/customers", name="get-all-customer-by-user", methods={"GET"})
+     * @Route("/api/v1/customers/{page}", name="get-all-customer-by-user", methods={"GET"})
      * 
      *      * API DOC *
      *
@@ -137,23 +151,31 @@ class ApiController extends AbstractController
      * @OA\Response( response=204, description="No customers for moments in your account !")
      * @OA\Response( response=401, description="Expired JWT Token")
      */
-    public function getAllCustomers(CustomerRepository $customer, Request $request): Response
+    public function getAllCustomers($page, CustomerRepository $customer, Request $request): Response
     {
 
-        $customer = $customer->findAllByUser($this->user[0]);
+        // TAKE PRODUCT WITH PAGINATION
+        $customer = $customer->findByMaxResult($this->user[0], $page);
 
+        // OUT OF RANGE
         if (count($customer) === 0) {
-            return new JsonResponse(['status' => 204, 'message' => 'No customers for moments in your account !'], 204, ['Content-Type' => 'application/json']);
+            return new JsonResponse(['status' => 204, 'message' => 'No customers more for moments in your account !'], 204, ['Content-Type' => 'application/json']);
+        }
+
+        // API auto discoverable
+        $json = [];
+        foreach ($customer as $key => $value) {
+            $json +=  [$key => ['@uri' => '/api/v1/customer/' . $customer[$key]['id'], '@method' => '[GET]', '@content' => $value]];
         }
 
         // For instance, return a Response with encoded Json
 
-        return $this->json($customer, 200, [], ['groups' => 'customer:read']);
+        return $this->json($json, 200, [], []);
     }
 
     /**
      * Consult customer detail by user
-     * @Route("/api/auth/get/{useruniqueid}/customer", name="get-detail-customer-by-user", methods={"GET"})
+     * @Route("/api/v1/customer/{useruniqueid}", name="get-detail-customer-by-user", methods={"GET"})
      * 
      *      * API DOC *
      *
@@ -174,12 +196,18 @@ class ApiController extends AbstractController
             return new JsonResponse(['status' => 401, 'message' => 'User dont exist or your are not allowed for take information !'], 200, ['Content-Type' => 'application/json']);
         }
 
-        return $this->json($customer, 200, [], ['groups' => 'customer:read']);
+        $json = [];
+
+        foreach ($customer as $key => $value) {
+            $json +=  [$key => ['@uri' => '/api/customer/' . $customer[$key]['id'], '@method' => '[GET]', '@content' => $value]];
+        }
+
+        return $this->json($json, 200, [], ['groups' => 'customer:read']);
     }
 
     /**
      * add new customer
-     * @Route("/api/auth/post/add/customer", name="post-new-customer" , methods={"POST"})
+     * @Route("/api/v1/customer", name="post-new-customer" , methods={"POST"})
      * 
      *      * API DOC *
      *
@@ -215,10 +243,24 @@ class ApiController extends AbstractController
 
             // INSTENTIATE CUSTOMER OBJET AND VERIF ERROR
             $newcustomer = $serializer->deserialize($data, Customer::class, 'json');
+
+            // VERIF EMAIL
+            $emailConstraint = new Assert\Email();
+            $emailConstraint->message = 'Invalid email address';
+
+            $email = $newcustomer->getEmail();
+            $error = $validator->validate($email, $emailConstraint);
+
+            if (count($error) > 0) {
+                return $this->json($error[0]->getMessage(), 400, ['Content-Type' => 'application/json']);
+            }
+
+            //VERIF ERROR
             $newcustomer->setUser($this->user[0]);
             $error = $validator->validate($newcustomer);
+
             if (count($error) > 0) {
-                return $this->json($error, 400, ['Content-Type' => 'application/json']);
+                return $this->json($error[0]->getMessage(), 400, ['Content-Type' => 'application/json']);
             }
 
             // IF CUSTOMER IS ALLREADY REGISTERED
@@ -240,7 +282,7 @@ class ApiController extends AbstractController
 
     /**
      * remove customer
-     * @Route("/api/auth/delete/{useruniqueid}/customer", name="remove-customer", methods={"DELETE"})
+     * @Route("/api/v1/customer/{useruniqueid}", name="remove-customer", methods={"DELETE"})
      * 
      *      * API DOC *
      *
@@ -248,7 +290,7 @@ class ApiController extends AbstractController
      * 
      * @OA\Tag(name="Customers")
      * 
-     * @OA\Response( response=200, description="Customer is removed !!")
+     * @OA\Response( response=204, description="")
      * @OA\Response( response=418, description="You dont allowed for remove this customer !!")
      * @OA\Response( response=401, description="Expired JWT Token")
      *
@@ -260,7 +302,7 @@ class ApiController extends AbstractController
         if ($customer) {
             $this->entityManager->remove($customer);
             $this->entityManager->flush();
-            return new JsonResponse(['status' => 200, 'message' => 'Customer ' . $useruniqueid . ' is removed !'], 200, ['Content-Type' => 'application/json']);
+            return new JsonResponse([], 204, ['Content-Type' => 'application/json']);
         }
 
         return new JsonResponse(['status' => 418, 'message' => 'You dont allowed for remove this customer !'], 418, ['Content-Type' => 'application/json']);
@@ -270,7 +312,7 @@ class ApiController extends AbstractController
 
     /**
      * Modifier customer
-     * @Route("/api/auth/patch/{useruniqueid}/customer", name="update-customer", methods={"PATCH"})
+     * @Route("/api/v1/customer/{useruniqueid}", name="update-customer", methods={"PATCH"})
      * 
      *      * API DOC *
      *
