@@ -64,6 +64,7 @@ class CustomerRepository extends ServiceEntityRepository
             ->getArrayResult();
     }
 
+
     // /**
     //  * @return Customer[] Returns an array of Customer objects
     //  */
