@@ -34,6 +34,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
 
+
     /*
     public function findOneBySomeField($value): ?Product
     {

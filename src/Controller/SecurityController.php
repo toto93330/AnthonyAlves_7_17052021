@@ -79,8 +79,6 @@ class SecurityController extends AbstractController
         session_start(); // Remove if session.auto_start=1 in php.ini
 
         $provider = new Google([
-            'clientId'     => '208419920199-g385p6nrsjhlriauu2i9ftp3tbl2b06g.apps.googleusercontent.com',
-            'clientSecret' => 'oiEI5jXdaA31PoQRTzBMSWr2',
             'redirectUri'  => 'https://127.0.0.1:8000/oauth/check/google',
         ]);
 

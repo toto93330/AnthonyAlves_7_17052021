@@ -73,7 +73,7 @@ class ApiController extends AbstractController
 
     /**
      * Consult all bilmo product
-     * @Route("/api/v1/products/{pages}", name="get-all-products", methods={"GET"})
+     * @Route("/api/v1/products", name="get-all-products", methods={"GET"})
      * 
      *      * API DOC *
      *
@@ -85,10 +85,17 @@ class ApiController extends AbstractController
      * @OA\Response( response=204, description="No products for moments !")
      * @OA\Response( response=401, description="Expired JWT Token")
      */
-    public function getAllProducts($pages, ProductRepository $product, Request $request)
+    public function getAllProducts(ProductRepository $product, Request $request)
     {
-        // TAKE PRODUCT WITH PAGINATION
-        $products = $product->findByMaxResult($pages);
+
+
+        if ($request->query->get('pages')) {
+            // TAKE PRODUCT WITH PAGINATION
+            $pages = $request->query->get('pages');
+            $products = $product->findByMaxResult($pages);
+        } else {
+            $products = $product->findAll();
+        }
 
         // OUT OF RANGE
         if (count($products) === 0) {
@@ -101,7 +108,7 @@ class ApiController extends AbstractController
         $json = [];
 
         foreach ($products as $key => $value) {
-            $json +=  [$key => ['@uri' => '/api/v1/products/' . $products[$key]['id'], '@method' => '[GET]', '@content' => $value]];
+            $json +=  [$key => ['@uri' => '/api/v1/products/' . $products[$key]['id'], '@method' => '[GET]', '@params' => '/api/v1/products?pages=1', '@content' => $value]];
         }
 
 
@@ -111,7 +118,7 @@ class ApiController extends AbstractController
 
     /**
      * Consult detail bilmo product
-     * @Route("/api/v1/product/{productid}", name="get-product-detail", methods={"GET"})
+     * @Route("/api/v1/products/{productid}", name="get-product-detail", methods={"GET"})
      * 
      *      * API DOC *
      *
@@ -139,7 +146,7 @@ class ApiController extends AbstractController
 
     /**
      * Consult all customer by user
-     * @Route("/api/v1/customers/{page}", name="get-all-customer-by-user", methods={"GET"})
+     * @Route("/api/v1/customers", name="get-all-customer-by-user", methods={"GET"})
      * 
      *      * API DOC *
      *
@@ -151,11 +158,20 @@ class ApiController extends AbstractController
      * @OA\Response( response=204, description="No customers for moments in your account !")
      * @OA\Response( response=401, description="Expired JWT Token")
      */
-    public function getAllCustomers($page, CustomerRepository $customer, Request $request): Response
+    public function getAllCustomers(CustomerRepository $customer, Request $request): Response
     {
 
-        // TAKE PRODUCT WITH PAGINATION
-        $customer = $customer->findByMaxResult($this->user[0], $page);
+
+        if ($request->query->get('pages')) {
+            // TAKE PRODUCT WITH PAGINATION
+            $pages = $request->query->get('pages');
+            $customer = $customer->findByMaxResult($this->user[0], $pages);
+        } else {
+            // TAKE PRODUCT WITH PAGINATION
+            $customer = $customer->findAllByUser($this->user[0]);
+        }
+
+
 
         // OUT OF RANGE
         if (count($customer) === 0) {
@@ -165,7 +181,7 @@ class ApiController extends AbstractController
         // API auto discoverable
         $json = [];
         foreach ($customer as $key => $value) {
-            $json +=  [$key => ['@uri' => '/api/v1/customer/' . $customer[$key]['id'], '@method' => '[GET]', '@content' => $value]];
+            $json +=  [$key => ['@uri' => '/api/v1/customers/' . $customer[$key]['id'], '@method' => '[GET]', '@params' => '/api/v1/customers?pages=1', '@content' => $value]];
         }
 
         // For instance, return a Response with encoded Json
@@ -175,7 +191,7 @@ class ApiController extends AbstractController
 
     /**
      * Consult customer detail by user
-     * @Route("/api/v1/customer/{useruniqueid}", name="get-detail-customer-by-user", methods={"GET"})
+     * @Route("/api/v1/customers/{useruniqueid}", name="get-detail-customer-by-user", methods={"GET"})
      * 
      *      * API DOC *
      *
@@ -196,18 +212,12 @@ class ApiController extends AbstractController
             return new JsonResponse(['status' => 401, 'message' => 'User dont exist or your are not allowed for take information !'], 200, ['Content-Type' => 'application/json']);
         }
 
-        $json = [];
-
-        foreach ($customer as $key => $value) {
-            $json +=  [$key => ['@uri' => '/api/customer/' . $customer[$key]['id'], '@method' => '[GET]', '@content' => $value]];
-        }
-
-        return $this->json($json, 200, [], ['groups' => 'customer:read']);
+        return $this->json($customer, 200, [], ['groups' => 'customer:read']);
     }
 
     /**
      * add new customer
-     * @Route("/api/v1/customer", name="post-new-customer" , methods={"POST"})
+     * @Route("/api/v1/customers", name="post-new-customer" , methods={"POST"})
      * 
      *      * API DOC *
      *
@@ -282,7 +292,7 @@ class ApiController extends AbstractController
 
     /**
      * remove customer
-     * @Route("/api/v1/customer/{useruniqueid}", name="remove-customer", methods={"DELETE"})
+     * @Route("/api/v1/customers/{useruniqueid}", name="remove-customer", methods={"DELETE"})
      * 
      *      * API DOC *
      *
